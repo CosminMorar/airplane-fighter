@@ -1,4 +1,4 @@
-let curMovingDir, obstacleCount, time, alive, gameSpeed;
+let pressedKeys, obstacleCount, projectileCount, time, alive, gameSpeed;
 
 function getRandomInt(min, max) {
     min = Math.ceil(min);
@@ -16,31 +16,31 @@ function createAirplane() {
 }
 
 function onKeyDown(event) {
-  curMovingDir[event.key] = true;
+  pressedKeys[event.key] = true;
 }
 
 function onKeyUp(event) {
-  curMovingDir[event.key] = false;
+  pressedKeys[event.key] = false;
 }
 
 function setupAirplaneMovement() {
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
-  curMovingDir = {};
+  pressedKeys = {};
 }
 
 function movePlane() {
   let airplane = document.getElementsByClassName("airplane")[0];
-  if (curMovingDir['a'] || curMovingDir["ArrowLeft"]) {
+  if (pressedKeys['a'] || pressedKeys["ArrowLeft"]) {
     airplane.style.left = Math.max(10, parseInt(airplane.style.left) - 2) + "px";
   }
-  if (curMovingDir['d'] || curMovingDir["ArrowRight"]) {
+  if (pressedKeys['d'] || pressedKeys["ArrowRight"]) {
     airplane.style.left = Math.min(440, parseInt(airplane.style.left) + 2) + "px";
   }
-  if (curMovingDir['w'] || curMovingDir["ArrowUp"]) {
+  if (pressedKeys['w'] || pressedKeys["ArrowUp"]) {
     airplane.style.top = Math.max(350, parseInt(airplane.style.top) - 1) + "px";
   }
-  if (curMovingDir['s'] || curMovingDir["ArrowDown"]) {
+  if (pressedKeys['s'] || pressedKeys["ArrowDown"]) {
     airplane.style.top = Math.min(440, parseInt(airplane.style.top) + 1) + "px";
   }
 }
@@ -56,10 +56,9 @@ function createObstacle() {
     'px;">';
 }
 
-function obstacleHitAirplane(obstacle) {
-  let airplane = document.getElementsByClassName("airplane")[0];
-  let rect1 = airplane.getBoundingClientRect();
-  let rect2 = obstacle.getBoundingClientRect();
+function areHitting(el1, el2) {
+  let rect1 = el1.getBoundingClientRect();
+  let rect2 = el2.getBoundingClientRect();
   return !(
       ((rect1.top + rect1.height) < (rect2.top)) ||
       (rect1.top > (rect2.top + rect2.height)) ||
@@ -68,9 +67,9 @@ function obstacleHitAirplane(obstacle) {
   );
 }
 
-function increaseScore() {
+function increaseScore(points) {
   let scoreElement = document.getElementsByClassName("score")[0];
-  scoreElement.innerHTML = parseInt(scoreElement.innerHTML) + 1;
+  scoreElement.innerHTML = parseInt(scoreElement.innerHTML) + points;
 }
 
 function updateHighScore() {
@@ -88,18 +87,70 @@ function endGame() {
 }
 
 function moveAllObstacles() {
+  let airplane = document.getElementsByClassName("airplane")[0];
   for (let i = 1; i <= obstacleCount; ++i) {
     let currentObstacle = document.getElementById("rocket-obstacle-" + i);
     if (currentObstacle != null) {
       currentObstacle.style.top = (parseInt(currentObstacle.style.top) + 2) + "px";
-      if (obstacleHitAirplane(currentObstacle)) {
+      if (areHitting(currentObstacle, airplane)) {
         endGame();
       }
       if (parseInt(currentObstacle.style.top) >= 500) {
         currentObstacle.remove();
-        increaseScore();
+        increaseScore(1);
       }
     }
+  }
+}
+
+function projectileHitObstacle(projectile) {
+  let hitSomething = false;
+  for (let i = 1; i <= obstacleCount; ++i) {
+    let currentObstacle = document.getElementById("rocket-obstacle-" + i);
+    if (currentObstacle != null) {
+      if (areHitting(currentObstacle, projectile)) {
+        currentObstacle.remove();
+        hitSomething = true;
+      }
+    }
+  }
+  if (hitSomething) {
+    projectile.remove();
+    return true;
+  }
+  return false;
+}
+
+function moveProjectiles() {
+  for (let i = 1; i <= projectileCount; ++i) {
+    let currentProjectile = document.getElementById("projectile-" + i);
+    if (currentProjectile != null) {
+      currentProjectile.style.top = (parseInt(currentProjectile.style.top) - 2) + "px";
+      if (projectileHitObstacle(currentProjectile)) {
+        increaseScore(5);
+      }
+      if (parseInt(currentProjectile.style.top) <= 0) {
+        currentProjectile.remove();
+      }
+    }
+  }
+}
+
+function createProjectile() {
+  if (pressedKeys[' ']) {
+    let airplane = document.getElementsByClassName("airplane")[0];
+    let airplanePosLeft = parseInt(airplane.style.left);
+    let airplanePosTop = parseInt(airplane.style.top);
+    let gameBoard = document.getElementsByClassName("game-board")[0];
+    ++projectileCount;
+    gameBoard.innerHTML +=
+      '<img class="projectile" id="projectile-'
+      + projectileCount +
+      '" src="projectile.png" alt="airplane image missing" style="top: '
+      + airplanePosTop +
+      'px; left: '
+      + airplanePosLeft +
+      'px;">';
   }
 }
 
@@ -108,10 +159,14 @@ function playGame() {
     return;
   }
   ++time;
-  if (time % 100 === 0) {
+  if (time % 100 == 0) {
     createObstacle();
   }
+  if (time % 50 == 0) {
+    createProjectile();
+  }
   moveAllObstacles();
+  moveProjectiles();
   movePlane();
 }
 
@@ -125,7 +180,7 @@ function startGame() {
   createGameBoard();
   createAirplane();
   setupAirplaneMovement();
-  obstacleCount = 0;
+  obstacleCount = projectileCount = 0;
   time = 0;
   alive = true;
   gameSpeed = window.setInterval(playGame, 5);
