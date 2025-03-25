@@ -1,9 +1,20 @@
-let pressedKeys, obstacleCount, projectileCount, time, alive, gameSpeed;
+let pressedKeys, obstacleCount, projectileCount, time, playInterval;
 
 function getRandomInt(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function areHitting(el1, el2) {
+  let rect1 = el1.getBoundingClientRect();
+  let rect2 = el2.getBoundingClientRect();
+  return !(
+      ((rect1.top + rect1.height) < (rect2.top)) ||
+      (rect1.top > (rect2.top + rect2.height)) ||
+      ((rect1.left + rect1.width) < rect2.left) ||
+      (rect1.left > (rect2.left + rect2.width))
+  );
 }
 
 function createGameBoard() {
@@ -45,28 +56,6 @@ function movePlane() {
   }
 }
 
-function createObstacle() {
-  ++obstacleCount;
-  let left = getRandomInt(0, 485);
-  document.getElementsByClassName('game-board')[0].innerHTML +=
-    '<img class="rocket-obstacle" id="rocket-obstacle-' +
-    obstacleCount +
-    '" src="rocket-obstacle.png" alt="rocket obstacle image missing" style="top: 0px; left: ' +
-    left +
-    'px;">';
-}
-
-function areHitting(el1, el2) {
-  let rect1 = el1.getBoundingClientRect();
-  let rect2 = el2.getBoundingClientRect();
-  return !(
-      ((rect1.top + rect1.height) < (rect2.top)) ||
-      (rect1.top > (rect2.top + rect2.height)) ||
-      ((rect1.left + rect1.width) < rect2.left) ||
-      (rect1.left > (rect2.left + rect2.width))
-  );
-}
-
 function increaseScore(points) {
   let scoreElement = document.getElementsByClassName("score")[0];
   scoreElement.innerHTML = parseInt(scoreElement.innerHTML) + points;
@@ -82,7 +71,7 @@ function updateHighScore() {
 }
 
 function endGame() {
-  alive = false;
+  clearInterval(playInterval);
   updateHighScore();
 }
 
@@ -101,6 +90,17 @@ function moveAllObstacles() {
       }
     }
   }
+}
+
+function createObstacle() {
+  ++obstacleCount;
+  let left = getRandomInt(0, 485);
+  document.getElementsByClassName('game-board')[0].innerHTML +=
+    '<img class="rocket-obstacle" id="rocket-obstacle-' +
+    obstacleCount +
+    '" src="rocket-obstacle.png" alt="rocket obstacle image missing" style="top: 0px; left: ' +
+    left +
+    'px;">';
 }
 
 function projectileHitObstacle(projectile) {
@@ -144,20 +144,17 @@ function createProjectile() {
     let gameBoard = document.getElementsByClassName("game-board")[0];
     ++projectileCount;
     gameBoard.innerHTML +=
-      '<img class="projectile" id="projectile-'
-      + projectileCount +
-      '" src="projectile.png" alt="airplane image missing" style="top: '
-      + airplanePosTop +
-      'px; left: '
-      + airplanePosLeft +
+      '<img class="projectile" id="projectile-' +
+      projectileCount +
+      '" src="projectile.png" alt="airplane image missing" style="top: ' +
+      airplanePosTop +
+      'px; left: ' +
+      airplanePosLeft +
       'px;">';
   }
 }
 
 function playGame() {
-  if (!alive) {
-    return;
-  }
   ++time;
   if (time % 100 == 0) {
     createObstacle();
@@ -174,14 +171,12 @@ function startGame() {
   // Remove old game board if it exists
   if (document.getElementsByClassName("game-board").length) {
     document.getElementsByClassName("game-board")[0].remove();
-    clearInterval(gameSpeed);
-    document.getElementsByClassName("score")[0].innerHTML = "0";
+    document.getElementsByClassName("score fs-4")[0].innerHTML = "0";
   }
   createGameBoard();
   createAirplane();
   setupAirplaneMovement();
   obstacleCount = projectileCount = 0;
   time = 0;
-  alive = true;
-  gameSpeed = window.setInterval(playGame, 5);
+  playInterval = window.setInterval(playGame, 5);
 }
