@@ -7,20 +7,19 @@ function getRandomInt(min, max) {
 }
 
 function createGameBoard() {
-  document.body.innerHTML += '<div class="game-board"></div>';
-  gameBoard = document.getElementsByClassName("game-board")[0];
+  document.querySelector('.container').innerHTML += '<div class="game-board"></div>';
 }
 
 function createAirplane() {
-  document.getElementsByClassName("game-board")[0].innerHTML += '<img class="airplane" src="airplane-image.png" alt="airplane image missing" style="top: 400px; left: 225px;">';
+  document.getElementsByClassName("game-board")[0].innerHTML +=
+    '<img class="airplane" src="airplane-image.png" alt="airplane image missing" style="top: 400px; left: 225px;">';
 }
 
 function onKeyDown(event) {
   curMovingDir[event.key] = true;
-  console.log(event.key);
 }
 
-function onKeyUp() {
+function onKeyUp(event) {
   curMovingDir[event.key] = false;
 }
 
@@ -49,7 +48,12 @@ function movePlane() {
 function createObstacle() {
   ++obstacleCount;
   let left = getRandomInt(0, 485);
-  document.getElementsByClassName('game-board')[0].innerHTML += '<img class="rocket-obstacle" id="rocket-obstacle-' + obstacleCount + '" src="rocket-obstacle.png" alt="rocket obstacle image missing" style="top: 0px; left: ' + left + 'px;">';
+  document.getElementsByClassName('game-board')[0].innerHTML +=
+    '<img class="rocket-obstacle" id="rocket-obstacle-' +
+    obstacleCount +
+    '" src="rocket-obstacle.png" alt="rocket obstacle image missing" style="top: 0px; left: ' +
+    left +
+    'px;">';
 }
 
 function obstacleHitAirplane(obstacle) {
@@ -72,7 +76,10 @@ function increaseScore() {
 function updateHighScore() {
   let scoreElement = document.getElementsByClassName("score")[0];
   let highScoreElement = document.getElementsByClassName("high-score")[0];
-  highScoreElement.innerHTML = Math.max(parseInt(scoreElement.innerHTML), parseInt(highScoreElement.innerHTML));
+  highScoreElement.innerHTML = Math.max(
+    parseInt(scoreElement.innerHTML),
+    parseInt(highScoreElement.innerHTML)
+  );
 }
 
 function endGame() {
@@ -88,7 +95,7 @@ function moveAllObstacles() {
       if (obstacleHitAirplane(currentObstacle)) {
         endGame();
       }
-      if (parseInt(currentObstacle.style.top) == 500) {
+      if (parseInt(currentObstacle.style.top) >= 500) {
         currentObstacle.remove();
         increaseScore();
       }
@@ -101,7 +108,7 @@ function playGame() {
     return;
   }
   ++time;
-  if (time % 100 == 0) {
+  if (time % 100 === 0) {
     createObstacle();
   }
   moveAllObstacles();
@@ -109,6 +116,7 @@ function playGame() {
 }
 
 function startGame() {
+  // Remove old game board if it exists
   if (document.getElementsByClassName("game-board").length) {
     document.getElementsByClassName("game-board")[0].remove();
     clearInterval(gameSpeed);
