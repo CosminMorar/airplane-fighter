@@ -64,6 +64,11 @@ function obstacleHitAirplane(obstacle) {
   );
 }
 
+function increaseScore() {
+  let scoreElement = document.getElementsByClassName("score")[0];
+  scoreElement.innerHTML = parseInt(scoreElement.innerHTML) + 1;
+}
+
 function moveAllObstacles() {
   for (let i = 1; i <= obstacleCount; ++i) {
     let currentObstacle = document.getElementById("rocket-obstacle-" + i);
@@ -74,6 +79,7 @@ function moveAllObstacles() {
       }
       if (parseInt(currentObstacle.style.top) == 500) {
         currentObstacle.remove();
+        increaseScore();
       }
     }
   }
