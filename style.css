@@ -1,10 +1,3 @@
-body {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-
-}
-
 .game-header {
   font-weight: bold;
   text-align: center;
@@ -40,6 +33,7 @@ body {
 }
 
 .game-board {
+  position: relative;
   width: 500px;
   height: 500px;
   margin: auto;
@@ -48,7 +42,14 @@ body {
 }
 
 .airplane {
-  position: relative;
+  position: absolute;
   width: 50px;
   height: 50px;
+}
+
+.rocket-obstacle {
+  position: absolute;
+  width: 15px;
+  height: 40px;
+  transform: rotate(180deg);
 }

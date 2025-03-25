@@ -1,4 +1,10 @@
-let gameBoard, airplane, curMovingDir;
+let curMovingDir, obstacleCount, time;
+
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 function createGameBoard() {
   document.body.innerHTML += '<div class="game-board"></div>';
@@ -6,10 +12,7 @@ function createGameBoard() {
 }
 
 function createAirplane() {
-  gameBoard.innerHTML += '<img class="airplane" src="airplane-image.png" alt="airplane image missing">';
-  airplane = document.getElementsByClassName("airplane")[0];
-  airplane.style.left = "225px";
-  airplane.style.top = "400px";
+  document.getElementsByClassName("game-board")[0].innerHTML += '<img class="airplane" src="airplane-image.png" alt="airplane image missing" style="top: 400px; left: 225px;">';
 }
 
 function onKeyDown(event) {
@@ -25,10 +28,10 @@ function setupAirplaneMovement() {
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
   curMovingDir = {};
-  window.setInterval(movePlane, 5);
 }
 
 function movePlane() {
+  let airplane = document.getElementsByClassName("airplane")[0];
   if (curMovingDir['a'] || curMovingDir["ArrowLeft"]) {
     airplane.style.left = Math.max(10, parseInt(airplane.style.left) - 2) + "px";
   }
@@ -43,6 +46,28 @@ function movePlane() {
   }
 }
 
+function createObstacle() {
+  ++obstacleCount;
+  let left = getRandomInt(0, 485);
+  document.getElementsByClassName('game-board')[0].innerHTML += '<img class="rocket-obstacle" id="rocket-obstacle-' + obstacleCount + '" src="rocket-obstacle.png" alt="rocket obstacle image missing" style="top: 0px; left: ' + left + 'px;">';
+}
+
+function moveAllObstacles() {
+  for (let i = 1; i <= obstacleCount; ++i) {
+    let currentObstacle = document.getElementById("rocket-obstacle-" + i);
+    currentObstacle.style.top = (parseInt(currentObstacle.style.top) + 2) + "px";
+  }
+}
+
+function playGame() {
+  ++time;
+  if (time % 100 == 0) {
+    createObstacle();
+  }
+  moveAllObstacles();
+  movePlane();
+}
+
 function startGame() {
   if (document.getElementsByClassName("game-board").length) {
     return;
@@ -50,4 +75,7 @@ function startGame() {
   createGameBoard();
   createAirplane();
   setupAirplaneMovement();
+  obstacleCount = 0;
+  time = 0;
+  window.setInterval(playGame, 5);
 }
