@@ -67,9 +67,14 @@ function obstacleHitAirplane(obstacle) {
 function moveAllObstacles() {
   for (let i = 1; i <= obstacleCount; ++i) {
     let currentObstacle = document.getElementById("rocket-obstacle-" + i);
-    currentObstacle.style.top = (parseInt(currentObstacle.style.top) + 2) + "px";
-    if (obstacleHitAirplane(currentObstacle)) {
-      alive = false;
+    if (currentObstacle != null) {
+      currentObstacle.style.top = (parseInt(currentObstacle.style.top) + 2) + "px";
+      if (obstacleHitAirplane(currentObstacle)) {
+        alive = false;
+      }
+      if (parseInt(currentObstacle.style.top) == 500) {
+        currentObstacle.remove();
+      }
     }
   }
 }
