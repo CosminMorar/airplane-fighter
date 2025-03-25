@@ -21,6 +21,12 @@
   transform: rotate(180deg);
 }
 
+.projectile {
+  position: absolute;
+  width: 8px;
+  height: 30px;
+}
+
 .start-button {
   border-radius: 8px;
 }
