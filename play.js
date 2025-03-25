@@ -69,13 +69,24 @@ function increaseScore() {
   scoreElement.innerHTML = parseInt(scoreElement.innerHTML) + 1;
 }
 
+function updateHighScore() {
+  let scoreElement = document.getElementsByClassName("score")[0];
+  let highScoreElement = document.getElementsByClassName("high-score")[0];
+  highScoreElement.innerHTML = Math.max(parseInt(scoreElement.innerHTML), parseInt(highScoreElement.innerHTML));
+}
+
+function endGame() {
+  alive = false;
+  updateHighScore();
+}
+
 function moveAllObstacles() {
   for (let i = 1; i <= obstacleCount; ++i) {
     let currentObstacle = document.getElementById("rocket-obstacle-" + i);
     if (currentObstacle != null) {
       currentObstacle.style.top = (parseInt(currentObstacle.style.top) + 2) + "px";
       if (obstacleHitAirplane(currentObstacle)) {
-        alive = false;
+        endGame();
       }
       if (parseInt(currentObstacle.style.top) == 500) {
         currentObstacle.remove();
