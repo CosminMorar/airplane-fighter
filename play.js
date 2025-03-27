@@ -42,7 +42,7 @@ const OBSTACLE_VERTICAL_MOVING_SPEED = 2;
 let pressedKeys, obstacleCount, projectileCount, time, gameTick;
 
 function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function intersection(el1, el2) {
