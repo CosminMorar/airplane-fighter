@@ -134,7 +134,7 @@ function moveAllObstacles() {
   let gameBoard = document.getElementsByClassName("game-board")[0];
   let airplane = document.getElementsByClassName("airplane")[0];
   for (let i = 1; i <= obstacleCount; ++i) {
-    let currentObstacle = document.getElementById("rocket-obstacle-" + i);
+    let currentObstacle = document.getElementById(`rocket-obstacle-${i}`);
     if (currentObstacle != null) {
       currentObstacle.style.top = (parseInt(currentObstacle.style.top) + OBSTACLE_VERTICAL_MOVING_SPEED) + "px";
       if (intersection(currentObstacle, airplane)) {
@@ -162,7 +162,7 @@ function createObstacle() {
 function projectileHitObstacle(projectile) {
   let hitSomething = false;
   for (let i = 1; i <= obstacleCount; ++i) {
-    let currentObstacle = document.getElementById("rocket-obstacle-" + i);
+    let currentObstacle = document.getElementById(`rocket-obstacle-${i}`);
     if (currentObstacle != null) {
       if (intersection(currentObstacle, projectile)) {
         currentObstacle.remove();
@@ -179,7 +179,7 @@ function projectileHitObstacle(projectile) {
 
 function moveProjectiles() {
   for (let i = 1; i <= projectileCount; ++i) {
-    let currentProjectile = document.getElementById("projectile-" + i);
+    let currentProjectile = document.getElementById(`projectile-${i}`);
     if (currentProjectile != null) {
       currentProjectile.style.top = (parseInt(currentProjectile.style.top) - PROJECTILES_VERTICAL_MOVING_SPEED) + "px";
       if (projectileHitObstacle(currentProjectile)) {
