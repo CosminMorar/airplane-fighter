@@ -1,7 +1,5 @@
 .game-board {
   position: relative;
-  width: 500px;
-  height: 500px;
   margin: 0 auto;
   margin-top: 25px;
   background-color: #6c757d;
@@ -10,21 +8,15 @@
 
 .airplane {
   position: absolute;
-  width: 50px;
-  height: 50px;
 }
 
 .rocket-obstacle {
   position: absolute;
-  width: 15px;
-  height: 40px;
   transform: rotate(180deg);
 }
 
 .projectile {
   position: absolute;
-  width: 8px;
-  height: 30px;
 }
 
 .start-button {
