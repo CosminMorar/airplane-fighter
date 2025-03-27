@@ -1,12 +1,51 @@
-let pressedKeys, obstacleCount, projectileCount, time, playInterval;
+/// Game board sizing
+const GAME_BOARD_WIDTH = 500;
+const GAME_BOARD_HEIGHT = 500;
+
+/// Airplane sizing
+const AIRPLANE_WIDTH = 50;
+const AIRPLANE_HEIGHT = 50;
+
+/// Obstacle sizing
+const OBSTACLE_WIDTH = 15;
+const OBSTACLE_HEIGHT = 40;
+
+/// Projectile sizing
+const PROJECTILE_WIDTH = 8;
+const PROJECTILE_HEIGHT = 30;
+
+/// Game speed (lower is faster)
+const OBSTACLE_CREATION_TIME = 50;
+const PROJECTILE_SHOOTING_TIME = 50;
+const GAME_TICK_TIME = 5;
+
+/// Airplane start position
+const AIRPLANE_START_LEFT_POS = (GAME_BOARD_WIDTH - AIRPLANE_WIDTH) / 2;
+const AIRPLANE_START_TOP_POS = GAME_BOARD_HEIGHT - AIRPLANE_HEIGHT - 50;
+
+/// Airplane movement boundaries
+const AIRPLANE_MIN_ALLOWED_LEFT_POS = 0;
+const AIRPLANE_MAX_ALLOWED_LEFT_POS = GAME_BOARD_WIDTH - AIRPLANE_WIDTH;
+const AIRPLANE_MIN_ALLOWED_TOP_POS = GAME_BOARD_HEIGHT - 3 * AIRPLANE_HEIGHT;
+const AIRPLANE_MAX_ALLOWED_TOP_POS = GAME_BOARD_HEIGHT - AIRPLANE_HEIGHT;
+
+/// Points
+const POINTS_FOR_DODGED_OBSTACLE = 1;
+const POINTS_FOR_DESTROYED_OBSTACLE = 5;
+
+/// Moving speeds
+const AIRPLANE_HORIZONTAL_MOVING_SPEED = 2;
+const AIRPLANE_VERTICAL_MOVING_SPEED = 1;
+const PROJECTILES_VERTICAL_MOVING_SPEED = 2;
+const OBSTACLE_VERTICAL_MOVING_SPEED = 2;
+
+let pressedKeys, obstacleCount, projectileCount, time, gameTick;
 
 function getRandomInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function areHitting(el1, el2) {
+function intersection(el1, el2) {
   let rect1 = el1.getBoundingClientRect();
   let rect2 = el2.getBoundingClientRect();
   return !(
@@ -18,12 +57,16 @@ function areHitting(el1, el2) {
 }
 
 function createGameBoard() {
-  document.querySelector('.container').innerHTML += '<div class="game-board"></div>';
+  document.querySelector('.container').innerHTML +=
+    `<div class="game-board" style="
+    width: ${GAME_BOARD_WIDTH}px; height: ${GAME_BOARD_HEIGHT}px;"></div>`;
 }
 
 function createAirplane() {
   document.getElementsByClassName("game-board")[0].innerHTML +=
-    '<img class="airplane" src="airplane-image.png" alt="airplane image missing" style="top: 400px; left: 225px;">';
+    `<img class="airplane" src="airplane-image.png" alt="airplane image missing" style="
+    top: ${AIRPLANE_START_TOP_POS}px; left: ${AIRPLANE_START_LEFT_POS}px;
+    width: ${AIRPLANE_WIDTH}px; height: ${AIRPLANE_HEIGHT}px;">`;
 }
 
 function onKeyDown(event) {
@@ -43,16 +86,28 @@ function setupAirplaneMovement() {
 function movePlane() {
   let airplane = document.getElementsByClassName("airplane")[0];
   if (pressedKeys['a'] || pressedKeys["ArrowLeft"]) {
-    airplane.style.left = Math.max(10, parseInt(airplane.style.left) - 2) + "px";
+    airplane.style.left = Math.max(
+      AIRPLANE_MIN_ALLOWED_LEFT_POS,
+      parseInt(airplane.style.left) - AIRPLANE_HORIZONTAL_MOVING_SPEED
+    ) + "px";
   }
   if (pressedKeys['d'] || pressedKeys["ArrowRight"]) {
-    airplane.style.left = Math.min(440, parseInt(airplane.style.left) + 2) + "px";
+    airplane.style.left = Math.min(
+      AIRPLANE_MAX_ALLOWED_LEFT_POS,
+      parseInt(airplane.style.left) + AIRPLANE_HORIZONTAL_MOVING_SPEED
+    ) + "px";
   }
   if (pressedKeys['w'] || pressedKeys["ArrowUp"]) {
-    airplane.style.top = Math.max(350, parseInt(airplane.style.top) - 1) + "px";
+    airplane.style.top = Math.max(
+      AIRPLANE_MIN_ALLOWED_TOP_POS,
+      parseInt(airplane.style.top) - AIRPLANE_VERTICAL_MOVING_SPEED
+    ) + "px";
   }
   if (pressedKeys['s'] || pressedKeys["ArrowDown"]) {
-    airplane.style.top = Math.min(440, parseInt(airplane.style.top) + 1) + "px";
+    airplane.style.top = Math.min(
+      AIRPLANE_MAX_ALLOWED_TOP_POS,
+      parseInt(airplane.style.top) + AIRPLANE_VERTICAL_MOVING_SPEED
+    ) + "px";
   }
 }
 
@@ -71,36 +126,37 @@ function updateHighScore() {
 }
 
 function endGame() {
-  clearInterval(playInterval);
+  clearInterval(gameTick);
   updateHighScore();
 }
 
 function moveAllObstacles() {
+  let gameBoard = document.getElementsByClassName("game-board")[0];
   let airplane = document.getElementsByClassName("airplane")[0];
   for (let i = 1; i <= obstacleCount; ++i) {
     let currentObstacle = document.getElementById("rocket-obstacle-" + i);
     if (currentObstacle != null) {
-      currentObstacle.style.top = (parseInt(currentObstacle.style.top) + 2) + "px";
-      if (areHitting(currentObstacle, airplane)) {
+      currentObstacle.style.top = (parseInt(currentObstacle.style.top) + OBSTACLE_VERTICAL_MOVING_SPEED) + "px";
+      if (intersection(currentObstacle, airplane)) {
         endGame();
       }
-      if (parseInt(currentObstacle.style.top) >= 500) {
+      if (parseInt(currentObstacle.style.top) >= GAME_BOARD_HEIGHT - OBSTACLE_HEIGHT) {
         currentObstacle.remove();
-        increaseScore(1);
+        increaseScore(POINTS_FOR_DODGED_OBSTACLE);
       }
     }
   }
 }
 
 function createObstacle() {
+  let gameBoard = document.getElementsByClassName('game-board')[0];
   ++obstacleCount;
-  let left = getRandomInt(0, 485);
-  document.getElementsByClassName('game-board')[0].innerHTML +=
-    '<img class="rocket-obstacle" id="rocket-obstacle-' +
-    obstacleCount +
-    '" src="rocket-obstacle.png" alt="rocket obstacle image missing" style="top: 0px; left: ' +
-    left +
-    'px;">';
+  let left = getRandomInt(0, (parseInt(gameBoard.style.width) - OBSTACLE_WIDTH));
+  gameBoard.innerHTML +=
+    `<img class="rocket-obstacle" id="rocket-obstacle-${obstacleCount}"
+    src="rocket-obstacle.png" alt="rocket obstacle image missing" style="
+    top: ${0}px; left: ${left}px;
+    height: ${OBSTACLE_HEIGHT}px; width: ${OBSTACLE_WIDTH}px;">`;
 }
 
 function projectileHitObstacle(projectile) {
@@ -108,7 +164,7 @@ function projectileHitObstacle(projectile) {
   for (let i = 1; i <= obstacleCount; ++i) {
     let currentObstacle = document.getElementById("rocket-obstacle-" + i);
     if (currentObstacle != null) {
-      if (areHitting(currentObstacle, projectile)) {
+      if (intersection(currentObstacle, projectile)) {
         currentObstacle.remove();
         hitSomething = true;
       }
@@ -125,9 +181,9 @@ function moveProjectiles() {
   for (let i = 1; i <= projectileCount; ++i) {
     let currentProjectile = document.getElementById("projectile-" + i);
     if (currentProjectile != null) {
-      currentProjectile.style.top = (parseInt(currentProjectile.style.top) - 2) + "px";
+      currentProjectile.style.top = (parseInt(currentProjectile.style.top) - PROJECTILES_VERTICAL_MOVING_SPEED) + "px";
       if (projectileHitObstacle(currentProjectile)) {
-        increaseScore(5);
+        increaseScore(POINTS_FOR_DESTROYED_OBSTACLE);
       }
       if (parseInt(currentProjectile.style.top) <= 0) {
         currentProjectile.remove();
@@ -144,22 +200,19 @@ function createProjectile() {
     let gameBoard = document.getElementsByClassName("game-board")[0];
     ++projectileCount;
     gameBoard.innerHTML +=
-      '<img class="projectile" id="projectile-' +
-      projectileCount +
-      '" src="projectile.png" alt="airplane image missing" style="top: ' +
-      airplanePosTop +
-      'px; left: ' +
-      airplanePosLeft +
-      'px;">';
+      `<img class="projectile" id="projectile-${projectileCount}"
+      src="projectile.png" alt="airplane image missing" style="
+      top: ${airplanePosTop}px; left: ${airplanePosLeft}px;
+      width: ${PROJECTILE_WIDTH}px; height: ${PROJECTILE_HEIGHT}px;">`;
   }
 }
 
 function playGame() {
   ++time;
-  if (time % 100 == 0) {
+  if (time % OBSTACLE_CREATION_TIME == 0) {
     createObstacle();
   }
-  if (time % 50 == 0) {
+  if (time % PROJECTILE_SHOOTING_TIME == 0) {
     createProjectile();
   }
   moveAllObstacles();
@@ -176,7 +229,6 @@ function startGame() {
   createGameBoard();
   createAirplane();
   setupAirplaneMovement();
-  obstacleCount = projectileCount = 0;
-  time = 0;
-  playInterval = window.setInterval(playGame, 5);
+  obstacleCount = projectileCount = time = 0;
+  gameTick = window.setInterval(playGame, GAME_TICK_TIME);
 }
